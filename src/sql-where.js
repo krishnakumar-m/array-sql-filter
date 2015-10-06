@@ -21,15 +21,15 @@ var employee =  [
 
 function runQuery() {
  
-    alert(printObj(employee.where("not(empid > 100 or empid < 100)")));
+    alert(printObj(employee.where(" not(not empid > 100 or empid < 100)")));
 }
 
 
 function getPreced(op) {
     switch (op)
     {
-	case "(": 
-	case ")": return 15;
+	/*case "(": 
+	case ")": return 15;*/
 	case "/":
 	case "*":
 	case "%": return 9;
@@ -160,7 +160,7 @@ function compute(a, op, b) {
 	val2 = b.value;
     }
 
-    alert(val1+" "+op.value+" "+val2);
+    
 
     switch (op.value)
     {
@@ -183,8 +183,7 @@ function evalRPN(tokens) {
     var token,stk =[],op1,op2,output;
     while (tokens.length > 0)
     {
-	alert(printObj(tokens));
-	alert(printObj(stk));
+	
 	token = tokens.shift();
         
 	if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
@@ -227,7 +226,9 @@ function buildRPN(tokens) {
     {
 
 	token = tokens.shift();
-
+	
+	
+	
 	if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
 	{
 	    rpn.push(token);
@@ -249,9 +250,11 @@ function buildRPN(tokens) {
 		    do {
 			optoken = opstack.pop();
 			rpn.push(optoken);
-
+                        /*alert("RPN"+printObj(rpn));
+			alert("opstack"+printObj(opstack));*/
 		    }while(optoken.value != "(" && opstack.length > 0);
-		    rpn.pop();
+		   var k= rpn.pop();
+		   
 		}
 		else if (token.value == "(")
 		{
@@ -263,7 +266,9 @@ function buildRPN(tokens) {
 		{
 
 
-		    while (opstack.length > 0 && getPreced(opstack[opstack.length - 1].value) >= getPreced(token.value))
+		    while (opstack.length > 0 
+		            && 
+			    getPreced(opstack[opstack.length - 1].value) >= getPreced(token.value))
 		    {
 
 			rpn.push(opstack.pop());
@@ -272,8 +277,11 @@ function buildRPN(tokens) {
 		    opstack.push(token);
 		}
 	    }
+	    
+
 	}
 
+	
     }
 
     while (opstack.length > 0)
