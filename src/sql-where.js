@@ -344,16 +344,7 @@ Array.prototype.where = function (str) {
     return where(this, str);
 };
 
-var employee = [{
-    empid: 100,
-    ename: "Chuck"
-}, {
-    empid: 101,
-    ename: "Rick"
-}, {
-    empid: 99,
-    ename: "George"
-}];
+
 
 
 Array.prototype.select = function (str) {
@@ -440,9 +431,6 @@ Array.prototype.orderBy = function (str) {
 };
 
 
-
-
-
 function printObj(o) {
 
     var i, len;
@@ -475,6 +463,17 @@ function printObj(o) {
 
 }
 
+/*
+var employee = [{
+    empid: 100,
+    ename: "Chuck"
+}, {
+    empid: 101,
+    ename: "Rick"
+}, {
+    empid: 99,
+    ename: "George"
+}];
 
 
 function runQuery() {
@@ -483,3 +482,4 @@ function runQuery() {
 }
 
 runQuery();
+*/
