@@ -4,7 +4,7 @@ Add SQL-like query capabilities to JS Object Arrays
 For testing, include sql-where.js in your project
 
 Example : 
-```
+```javascript
 var employee = [{
     empid: 100,
     ename: "Chuck"
@@ -18,7 +18,7 @@ var employee = [{
 ```
 Calling 
 
-```
+```javascript
 employee.where("ename like '%ck'").select("ename,empid").orderBy("empid desc")
 ```
 
