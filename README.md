@@ -1,9 +1,29 @@
 # array-sql-filter
 Add SQL-like query capabilities to JS Object Arrays
 
-(http://jsfiddle.net/krishnakumarm777/dgeLn5wa/8/)
+For testing, include sql-where.js in your project
 
+Example : 
+
+var employee = [{
+    empid: 100,
+    ename: "Chuck"
+}, {
+    empid: 101,
+    ename: "Rick"
+}, {
+    empid: 99,
+    ename: "George"
+}];
+
+Calling 
+employee.where("ename like '%ck'").select("ename,empid").orderBy("empid desc")
+
+--> Returns [{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]
+
+
+Sample Fiddle : http://jsfiddle.net/krishnakumarm777/dgeLn5wa/10/
 
 Next iteration : Add IN and BETWEEN capabilities
 
-Future : Add LIKE, various functions 
+Future : Add various SQL functions 
