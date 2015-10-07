@@ -1,14 +1,16 @@
 Array.prototype.where = function (str) {
     getPreced = function (op) {
-        switch (op) {
+        switch (op)
+	{
 
             case "/":
             case "*":
             case "%":
-                return 9;
+                return 10;
             case "+":
             case "-":
-                return 8;
+                return 9;
+	    case "LIKE":return 8;
             case ">":
             case "<":
             case "<=":
@@ -32,16 +34,20 @@ Array.prototype.where = function (str) {
     replaceIdsWithValues = function (tokens, objArray) {
         var i, l = tokens.length,
             token, newToken, idValue, output = [];
-        for (i = 0; i < l; i++) {
+        for (i = 0; i < l; i++)
+	{
             token = tokens[i];
             newToken = {};
             newToken["value"] = token.value;
 
-            if ("ID" === token.type) {
+            if ("ID" === token.type)
+	    {
                 idValue = objArray[token.value];
-                if (idValue) {
+                if (idValue)
+		{
                     newToken["value"] = idValue;
-                    switch (typeof (idValue)) {
+                    switch (typeof (idValue))
+		    {
                         case "string":
                             newToken["type"] = "STR";
                             break;
@@ -50,10 +56,14 @@ Array.prototype.where = function (str) {
                             break;
                     }
 
-                } else {
+                }
+		else
+		{
                     throw Error("Undefined variable");
                 }
-            } else {
+            }
+	    else
+	    {
                 newToken["value"] = token.value;
                 newToken["type"] = token.type;
             }
@@ -70,10 +80,12 @@ Array.prototype.where = function (str) {
             len = objArray.length;
         tokens = buildRPN(tokens);
 
-        for (i = 0; i < len; i++) {
+        for (i = 0; i < len; i++)
+	{
             newTokens = replaceIdsWithValues(tokens, objArray[i]);
 
-            if (evalRPN(newTokens).value) {
+            if (evalRPN(newTokens).value)
+	    {
                 output.push(objArray[i]);
             }
         }
@@ -89,13 +101,15 @@ Array.prototype.where = function (str) {
         var t = a.type;
         var val1, val2 = "";
         val1 = a.value;
-        if (b) {
+        if (b)
+	{
             val2 = b.value;
         }
 
 
 
-        switch (op.value) {
+        switch (op.value)
+	{
             case "+":
                 return {
                     type: t,
@@ -161,23 +175,37 @@ Array.prototype.where = function (str) {
                     type: t,
                     value: !val1
                 };
+	case "LIKE":
+	        val2 = val2.replace(/%/g,".*");
+	        var patt = new RegExp(val2);
+                return {
+                    type: t,
+                    value: patt.test(val1)
+                };
         }
     };
 
     evalRPN = function (tokens) {
         var token, stk = [],
             op1, op2, output;
-        while (tokens.length > 0) {
+        while (tokens.length > 0)
+	{
 
             token = tokens.shift();
 
-            if (token.type == "STR" || token.type == "NUM" || token.type == "ID") {
+            if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
+	    {
                 stk.push(token);
-            } else if (token.type == "OP") {
+            }
+	    else if (token.type == "OP")
+	    {
                 op2 = stk.pop();
-                if (token.value == "NOT") {
+                if (token.value == "NOT")
+		{
                     stk.push(compute(op2, token));
-                } else {
+                }
+		else
+		{
                     op1 = stk.pop();
                     stk.push(compute(op1, token, op2));
                 }
@@ -186,7 +214,8 @@ Array.prototype.where = function (str) {
 
         }
 
-        if (stk.length != 1) {
+        if (stk.length != 1)
+	{
             throw Error("Eval Syntax error");
         }
 
@@ -202,22 +231,30 @@ Array.prototype.where = function (str) {
         var rpn = [],
             opstack = [],
             token;
-        while (tokens.length > 0) {
+        while (tokens.length > 0)
+	{
 
             token = tokens.shift();
 
 
 
-            if (token.type == "STR" || token.type == "NUM" || token.type == "ID") {
+            if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
+	    {
                 rpn.push(token);
 
-            } else if (token.type == "OP") {
+            }
+	    else if (token.type == "OP")
+	    {
 
-                if (0 === opstack.length || "(" === opstack[opstack.length - 1].value) {
+                if (0 === opstack.length || "(" === opstack[opstack.length - 1].value)
+		{
                     opstack.push(token);
 
-                } else {
-                    if (token.value == ")") {
+                }
+		else
+		{
+                    if (token.value == ")")
+		    {
 
                         do {
                             optoken = opstack.pop();
@@ -226,14 +263,19 @@ Array.prototype.where = function (str) {
                         } while (optoken.value != "(" && opstack.length > 0);
                         var k = rpn.pop();
 
-                    } else if (token.value == "(") {
+                    }
+		    else if (token.value == "(")
+		    {
 
                         opstack.push(token);
 
-                    } else {
+                    }
+		    else
+		    {
 
 
-                        while (opstack.length > 0 && getPreced(opstack[opstack.length - 1].value) >= getPreced(token.value)) {
+                        while (opstack.length > 0 && getPreced(opstack[opstack.length - 1].value) >= getPreced(token.value))
+			{
 
                             rpn.push(opstack.pop());
                         }
@@ -248,7 +290,8 @@ Array.prototype.where = function (str) {
 
         }
 
-        while (opstack.length > 0) {
+        while (opstack.length > 0)
+	{
             rpn.push(opstack.pop());
         }
 
@@ -260,76 +303,92 @@ Array.prototype.where = function (str) {
         var tokens = [],
             token = {}, i = 0;
         var OpsList = ["+", "-", "*", "/", "%", "(", ")", ">=", "<=", "<>"];
-        var Keywords = ["AND", "OR", "NOT", "IN", "BETWEEN"];
+        var Keywords = ["AND", "OR", "NOT", "IN", "BETWEEN","LIKE"];
         str = str.replace("\r\n", " "); //.replace(/\s+/, " ");
         token["type"] = "";
         token["value"] = "";
         var tempString = "";
-        while (i < str.length && str[i]) {
+        while (i < str.length && str[i])
+	{
 
             tempString = "";
 
             // Skip all white spaces
             while (/[\s\t\r\n]/.test(str[i])) i++;
 
-            if (/[0-9]/.test(str[i])) {
+            if (/[0-9]/.test(str[i]))
+	    {
                 do {
                     tempString += str[i];
                     i++;
                 } while (str[i] && /[0-9\.]/.test(str[i]));
 
                 tokens.push({
-                    type: "NUM",
-                    value: parseFloat(tempString)
-                });
+				type: "NUM",
+				value: parseFloat(tempString)
+			    });
 
-            } else if (/[a-zA-Z_]/.test(str[i])) {
+            }
+	    else if (/[a-zA-Z_]/.test(str[i]))
+	    {
                 do {
                     tempString += str[i];
                     i++;
                 } while (str[i] && /[0-9a-zA-Z_]/.test(str[i]));
 
-                if (Keywords.indexOf(tempString.toUpperCase()) > -1) {
+                if (Keywords.indexOf(tempString.toUpperCase()) > -1)
+		{
                     tokens.push({
-                        type: "OP",
-                        value: tempString.toUpperCase()
-                    });
-                } else {
+				    type: "OP",
+				    value: tempString.toUpperCase()
+				});
+                }
+		else
+		{
 
                     tokens.push({
-                        type: "ID",
-                        value: tempString
-                    });
+				    type: "ID",
+				    value: tempString
+				});
                 }
 
-            } else if (/'/.test(str[i])) {
+            }
+	    else if (/'/.test(str[i]))
+	    {
                 i++;
-                while (str[i] && str[i] != "'") {
+                while (str[i] && str[i] != "'")
+		{
 
                     tempString += str[i];
                     i++;
                 }
                 i++;
                 tokens.push({
-                    type: "STR",
-                    value: tempString
-                });
-            } else if ("+-*/%><=(),".indexOf(str[i]) > -1) {
+				type: "STR",
+				value: tempString
+			    });
+            }
+	    else if ("+-*/%><=(),".indexOf(str[i]) > -1)
+	    {
 
                 tempString = str[i];
                 i++;
-                if (str[i]) {
-                    if ((tempString == "<" && str[i] == "=") || (tempString == ">" && str[i] == "=") || (tempString == "<" && str[i] == ">")) {
+                if (str[i])
+		{
+                    if ((tempString == "<" && str[i] == "=") || (tempString == ">" && str[i] == "=") || (tempString == "<" && str[i] == ">"))
+		    {
                         tempString += str[i];
                         i++;
                     }
                 }
 
                 tokens.push({
-                    type: "OP",
-                    value: tempString
-                });
-            } else {
+				type: "OP",
+				value: tempString
+			    });
+            }
+	    else
+	    {
                 throw Error("Character unrecognised");
             }
 
@@ -355,11 +414,13 @@ Array.prototype.select = function (str) {
 
     nFields = fieldNames.length;
 
-    for (i = 0; i < nRecords; i++) {
+    for (i = 0; i < nRecords; i++)
+    {
         outputRecord = {};
         thisRecord = this[i];
 
-        for (j = 0; j < nFields; j++) {
+        for (j = 0; j < nFields; j++)
+	{
             thisField = fieldNames[j];
 
             outputRecord[thisField] = thisRecord[thisField];
@@ -378,21 +439,26 @@ Array.prototype.orderBy = function (str) {
         var fieldNames = str.trim().split(","),
             i, nFields, sortField, sortFlag, sortOrder, cmpr, fields;
         nFields = fieldNames.length;
-        for (i = 0; i < nFields; i++) {
+        for (i = 0; i < nFields; i++)
+	{
             fields = fieldNames[i].split(/\s+/);
             sortField = fields[0];
             sortFlag = fields[1];
             console.log("Sort Field " + sortField);
             console.log("Sort Flag " + sortFlag);
 
-            if (!sortFlag || /ASC/i.test(sortFlag)) {
+            if (!sortFlag || /ASC/i.test(sortFlag))
+	    {
                 sortOrder = 1;
-            } else if (/DESC/i.test(sortFlag)) {
+            }
+	    else if (/DESC/i.test(sortFlag))
+	    {
                 sortOrder = -1;
             }
             console.log("Sort Order " + sortOrder);
 
-            switch (typeof (objArray[0][sortField])) {
+            switch (typeof (objArray[0][sortField]))
+	    {
                 case "string":
                     cmpr = strCompare;
                     break;
@@ -431,55 +497,4 @@ Array.prototype.orderBy = function (str) {
 };
 
 
-function printObj(o) {
 
-    var i, len;
-    if (o == null) return null;
-    var arr = [];
-
-    if (Array.isArray(o)) {
-        len = o.length;
-        for (i = 0; i < len; i++) {
-            arr.push(printObj(o[i]));
-        }
-        return "[" + arr.join(",") + "]";
-    }
-
-    switch (typeof (o)) {
-        case "string":
-            return "\"" + o + "\"";
-
-        case "object":
-            arr = [];
-            for (prop in o) {
-                arr.push(prop + ":" + printObj(o[prop]));
-            }
-            return "{" + arr.join(",") + "}";
-        default:
-            return o;
-
-    }
-
-
-}
-
-/*
-var employee = [{
-    empid: 100,
-    ename: "Chuck"
-}, {
-    empid: 101,
-    ename: "Rick"
-}, {
-    empid: 99,
-    ename: "George"
-}];
-
-
-function runQuery() {
-
-    document.getElementById("Result").innerHTML = printObj(employee.where("empid>50").select("ename,empid").orderBy("empid,ename"));
-}
-
-runQuery();
-*/
