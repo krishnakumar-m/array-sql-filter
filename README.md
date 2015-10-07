@@ -22,7 +22,7 @@ Calling
 employee.where("ename like '%ck'").select("ename,empid").orderBy("empid desc")
 ```
 
---> Returns [{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]
+Returns `[{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]`
 
 
 [Sample Fiddle](http://jsfiddle.net/krishnakumarm777/dgeLn5wa/12/)
