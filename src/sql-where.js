@@ -23,6 +23,7 @@ Array.prototype.where = function (str) {
             case "AND":
             case "OR":
                 return 5;
+            case "BETWEEN": return 4;
             default:
                 return 0;
         }
@@ -97,15 +98,19 @@ Array.prototype.where = function (str) {
 
 
 
-    compute = function (a, op, b) {
+    compute = function (a, op, b, c) {
         var t = a.type;
-        var val1, val2 = "";
+        var val1, val2 = "",val3= "";
         val1 = a.value;
         if (b)
 	{
             val2 = b.value;
         }
 
+	if (c)
+	{
+	    val3 = c.value;
+	}
 
 
         switch (op.value)
@@ -175,13 +180,15 @@ Array.prototype.where = function (str) {
                     type: t,
                     value: !val1
                 };
-	case "LIKE":
-	        val2 = val2.replace(/%/g,".*");
+	    case "LIKE":
+	        val2 = val2.replace(/%/g, ".*");
 	        var patt = new RegExp(val2);
                 return {
                     type: t,
                     value: patt.test(val1)
                 };
+	    case "BETWEEN": return {type:t,
+		    value: val1 >= val2 && val1 <= val3};
         }
     };
 
@@ -204,6 +211,13 @@ Array.prototype.where = function (str) {
 		{
                     stk.push(compute(op2, token));
                 }
+		else if (token.value == "BETWEEN")
+		{
+		    op1 = stk.pop();
+		    op0 = stk.pop();
+
+		    stk.push(compute(op0, token, op1, op2));
+		}
 		else
 		{
                     op1 = stk.pop();
@@ -221,8 +235,6 @@ Array.prototype.where = function (str) {
 
         output = stk.pop();
 
-
-
         return output;
     };
 
@@ -231,11 +243,19 @@ Array.prototype.where = function (str) {
         var rpn = [],
             opstack = [],
             token;
+
+	var isBetween = false, skipNextStartBrace = false;
+
         while (tokens.length > 0)
 	{
 
             token = tokens.shift();
 
+	    if (token.value === "AND" &&
+		opstack.length >= 1 && opstack[opstack.length - 1].value == "BETWEEN")
+	    {
+		continue;
+	    }
 
 
             if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
@@ -248,12 +268,13 @@ Array.prototype.where = function (str) {
 
                 if (0 === opstack.length || "(" === opstack[opstack.length - 1].value)
 		{
+
                     opstack.push(token);
 
                 }
 		else
 		{
-                    if (token.value == ")")
+		    if (token.value == ")")
 		    {
 
                         do {
@@ -261,7 +282,8 @@ Array.prototype.where = function (str) {
                             rpn.push(optoken);
 
                         } while (optoken.value != "(" && opstack.length > 0);
-                        var k = rpn.pop();
+
+			optoken.value == "(" && rpn.pop();
 
                     }
 		    else if (token.value == "(")
@@ -269,25 +291,21 @@ Array.prototype.where = function (str) {
 
                         opstack.push(token);
 
+			if (opstack.length > 1 && opstack[opstack.length - 2].value == "BETWEEN")
+			{opstack.pop();}
                     }
 		    else
 		    {
 
-
                         while (opstack.length > 0 && getPreced(opstack[opstack.length - 1].value) >= getPreced(token.value))
 			{
-
                             rpn.push(opstack.pop());
                         }
 
                         opstack.push(token);
                     }
                 }
-
-
             }
-
-
         }
 
         while (opstack.length > 0)
@@ -308,6 +326,9 @@ Array.prototype.where = function (str) {
         token["type"] = "";
         token["value"] = "";
         var tempString = "";
+
+
+
         while (i < str.length && str[i])
 	{
 
@@ -399,7 +420,6 @@ Array.prototype.where = function (str) {
 
     };
 
-
     return where(this, str);
 };
 
@@ -444,8 +464,6 @@ Array.prototype.orderBy = function (str) {
             fields = fieldNames[i].split(/\s+/);
             sortField = fields[0];
             sortFlag = fields[1];
-            console.log("Sort Field " + sortField);
-            console.log("Sort Flag " + sortFlag);
 
             if (!sortFlag || /ASC/i.test(sortFlag))
 	    {
@@ -455,7 +473,6 @@ Array.prototype.orderBy = function (str) {
 	    {
                 sortOrder = -1;
             }
-            console.log("Sort Order " + sortOrder);
 
             switch (typeof (objArray[0][sortField]))
 	    {

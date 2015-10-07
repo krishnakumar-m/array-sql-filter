@@ -26,8 +26,11 @@ returns `[{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]`.
 
 [Sample Fiddle](http://jsfiddle.net/krishnakumarm777/dgeLn5wa/12/)
 
-##Next iteration 
-Add IN and BETWEEN capabilities
 
-##Future 
+>Added BETWEEN clause.
+
+###Next iteration 
+Add IN clause handling
+
+###Future 
 Add various SQL functions 

@@ -46,7 +46,16 @@ var cars = [
 
 function runQueries() {
 
-    document.getElementById("result").innerHTML = printObj(cars.where("model like '%er'").orderBy("make"));
+
+    var query=[
+    "make between (1990 and 2000) and maker = 'Ford'",
+    "model like 'C%'",
+    "make>=1990 and make<=2000",
+    "maker='Dodge' or make>1990",
+    "maker <> 'Ford' and model <>'Camarro'"],i,len=query.length;
+    for(i=0;i<len;i++) {
+    document.getElementById("result").innerHTML += "<p><b>"+query[i]+"</b><br>"+printObj(cars.where(query[i]))+"</p>";
+    }
 }
 
 </script>
