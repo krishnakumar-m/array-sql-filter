@@ -37,11 +37,12 @@ returns `[{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]`.
 [Sample Fiddle](http://jsfiddle.net/krishnakumarm777/dgeLn5wa/13/)
 
 
->Added BETWEEN clause.
+>Added BETWEEN clause. (beta)
+>Date sorting added
 
 ###Next iteration 
 Add IN clause handling
-Date based sorting
+
 
 ###Future 
 Add various SQL functions 
