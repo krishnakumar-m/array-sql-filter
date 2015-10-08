@@ -3,32 +3,38 @@ var cars = [
     {
 	make:1989,
 	maker:"Chevrolet",
-	model:"Camarro"
+	model:"Camarro",
+	regDate:"Sep 30,2014"
     },
     {
 	make:2001,
 	maker:"Volkswagen",
-	model:"Passat"
+	model:"Passat",
+	regDate:"May 12,2013"
     },
     {
 	make:1998,
 	maker:"Ford",
-	model:"GT"
+	model:"GT",
+	regDate:"Dec 21, 2009"
     },
     {
 	make:1995,
 	maker:"Dodge",
-	model:"Charger"
+	model:"Charger",
+	regDate:"Dec 7, 2013"
     },
     {
 	make:1989,
 	maker:"Dodge",
-	model:"Challenger"
+	model:"Challenger",
+	regDate:"Nov 14, 2012"
     },
     {
 	make:2003,
 	maker:"Shelby",
-	model:"Mustang"
+	model:"Mustang",
+	regDate:"Nov 5, 2007"
     }
 ];
 
@@ -37,7 +43,7 @@ function runQueries() {
 
 
     var stmts=[
-	{ query:"make between (1990 and 2000)",orderByClause:"make"},
+	{ query:"make between (1990 and 2000)",orderByClause:"regDate desc"},
 	{ query:"model like 'C%'"},
 	{query:"make>=1990 and make<=2000"},
 	{query:"maker='Dodge' or make>1990",selectClause:"maker,model",orderByClause:"maker"},

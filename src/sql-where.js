@@ -1,5 +1,6 @@
 Array.prototype.where = function (str) {
-    getPreced = function (op) {
+    "use strict";
+    var getPreced = function (op) {
         switch (op)
 	{
 
@@ -32,7 +33,7 @@ Array.prototype.where = function (str) {
 
 
 
-    replaceIdsWithValues = function (tokens, objArray) {
+    var replaceIdsWithValues = function (tokens, objArray) {
         var i, l = tokens.length,
             token, newToken, idValue, output = [];
         for (i = 0; i < l; i++)
@@ -74,11 +75,12 @@ Array.prototype.where = function (str) {
         return output;
     };
 
-    where = function (objArray, expr) {
+   var where = function (objArray, expr) {
 
         var newTokens, output = [],
             tokens = tokenize(expr),
-            len = objArray.length;
+            len = objArray.length,i;
+	    
         tokens = buildRPN(tokens);
 
         for (i = 0; i < len; i++)
@@ -98,7 +100,7 @@ Array.prototype.where = function (str) {
 
 
 
-    compute = function (a, op, b, c) {
+    var compute = function (a, op, b, c) {
         var t = a.type;
         var val1, val2 = "",val3= "";
         val1 = a.value;
@@ -192,8 +194,8 @@ Array.prototype.where = function (str) {
         }
     };
 
-    evalRPN = function (tokens) {
-        var token, stk = [],
+    var evalRPN = function (tokens) {
+        var token, stk = [],op0,
             op1, op2, output;
         while (tokens.length > 0)
 	{
@@ -239,10 +241,10 @@ Array.prototype.where = function (str) {
     };
 
 
-    buildRPN = function (tokens) {
+    var buildRPN = function (tokens) {
         var rpn = [],
             opstack = [],
-            token;
+            token,optoken;
 
 	var isBetween = false, skipNextStartBrace = false;
 
@@ -317,7 +319,7 @@ Array.prototype.where = function (str) {
     };
 
 
-    tokenize = function (str) {
+    var tokenize = function (str) {
         var tokens = [],
             token = {}, i = 0;
         var OpsList = ["+", "-", "*", "/", "%", "(", ")", ">=", "<=", "<>"];
@@ -427,10 +429,11 @@ Array.prototype.where = function (str) {
 
 
 Array.prototype.select = function (str) {
+    "use strict";
     var fieldNames = str.trim().split(","),
         nRecords = this.length,
         nFields, i, outputArray = [],
-        outputRecord = {}, j, thisField, thisRecord;
+        outputRecord = {}, j, thisField, thisRecord,thisValue;
 
     nFields = fieldNames.length;
 
@@ -441,9 +444,24 @@ Array.prototype.select = function (str) {
 
         for (j = 0; j < nFields; j++)
 	{
-            thisField = fieldNames[j];
+            thisField = fieldNames[j].trim();
 
-            outputRecord[thisField] = thisRecord[thisField];
+	    if ("" === thisField)
+	    {
+		throw Error("Field list is invalid");
+	    }
+
+	    thisValue = thisRecord[thisField];
+
+	    if (thisValue)
+	    {
+
+		outputRecord[thisField] = thisValue;
+	    }
+	    else
+	    {
+		throw Error("Invalid property " + thisField);
+	    }
 
         }
         outputArray.push(outputRecord);
@@ -455,9 +473,12 @@ Array.prototype.select = function (str) {
 
 
 Array.prototype.orderBy = function (str) {
-    sortBy = function (objArray, str) {
-        var fieldNames = str.trim().split(","),
-            i, nFields, sortField, sortFlag, sortOrder, cmpr, fields;
+    "use strict";
+    var sortBy = function (objArray, str) {
+        var fieldNames = str.trim().split(",");
+        var  i, nFields, sortField, sortFlag,
+	    sortOrder, cmpr, fields,firstRecord,fieldValue;
+
         nFields = fieldNames.length;
         for (i = 0; i < nFields; i++)
 	{
@@ -473,8 +494,20 @@ Array.prototype.orderBy = function (str) {
 	    {
                 sortOrder = -1;
             }
+	    else
+	    {
+		throw Error("Invalid sort option");
+	    }
 
-            switch (typeof (objArray[0][sortField]))
+	    firstRecord = objArray[0];
+	    
+	    fieldValue = firstRecord[sortField];
+	    
+	    if(isNaN(Date.parse(fieldValue))) {
+		cmpr = dateCompare;
+	    } else {
+	    
+            switch (typeof (fieldValue))
 	    {
                 case "string":
                     cmpr = strCompare;
@@ -483,8 +516,9 @@ Array.prototype.orderBy = function (str) {
                     cmpr = numCompare;
                     break;
                 default:
-                    cmpr = numCompare;
+                    cmpr = strCompare;
             }
+	    }
 
             objArray.sort(cmpr(sortField, sortOrder));
         }
@@ -493,8 +527,17 @@ Array.prototype.orderBy = function (str) {
     };
 
 
+    
+    var dateCompare = function (prop, order) {
 
-    numCompare = function (prop, order) {
+        return function (a, b) {
+            var date1 = new Date(a[prop]);
+	    var date2 = new Date(b[prop]);
+            return (date1 < date2?-1:1) * order;
+        };
+    };
+
+    var numCompare = function (prop, order) {
 
         return function (a, b) {
 
@@ -502,7 +545,7 @@ Array.prototype.orderBy = function (str) {
         };
     };
 
-    strCompare = function (prop, order) {
+    var strCompare = function (prop, order) {
 
         return function (a, b) {
 
