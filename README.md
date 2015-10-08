@@ -24,7 +24,7 @@ employee.where("ename like '%ck'").select("ename,empid").orderBy("empid desc")
 returns `[{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]`.
 
 
-[Sample Fiddle](http://jsfiddle.net/krishnakumarm777/dgeLn5wa/12/)
+[Sample Fiddle](http://jsfiddle.net/krishnakumarm777/dgeLn5wa/13/)
 
 
 >Added BETWEEN clause.
