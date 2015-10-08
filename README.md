@@ -41,6 +41,8 @@ returns `[{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]`.
 
 ###Next iteration 
 Add IN clause handling
+Date based sorting
 
 ###Future 
 Add various SQL functions 
+
