@@ -4,59 +4,13 @@
 
     <script type="text/javascript" src="src/sql-where.js"></script>
     <script type="text/javascript" src="src/helper.js"></script>
+    <script type="text/javascript" src="test/test.js"></script>
 <script>
 window.onerror = function(a, b, c, d, e) {
     alert(a + " " + b + " " + c + " " + d + " " + e);
 };
 
 
-var cars = [
-    {
-	make:1989,
-	maker:"Chevrolet",
-	model:"Camarro"
-    },
-    {
-	make:2001,
-	maker:"Volkswagen",
-	model:"Passat"
-    },
-    {
-	make:1998,
-	maker:"Ford",
-	model:"GT"
-    },
-    {
-	make:1995,
-	maker:"Dodge",
-	model:"Charger"
-    },
-    {
-	make:1989,
-	maker:"Dodge",
-	model:"Challenger"
-    },
-    {
-	make:2003,
-	maker:"Shelby",
-	model:"Mustang"
-    }
-];
-
-
-function runQueries() {
-
-
-    var query=[
-    "make between (1990 and 2000) and maker = 'Ford'",
-    "model like 'C%'",
-    "make>=1990 and make<=2000",
-    "maker='Dodge' or make>1990",
-    "maker <> 'Ford' and model <>'Camarro'"],i,len=query.length;
-    for(i=0;i<len;i++) {
-    document.getElementById("result").innerHTML += "<p><b>"+query[i]+"</b><br>"+printObj(cars.where(query[i]))+"</p>";
-    }
-}
 
 </script>
   </head>
