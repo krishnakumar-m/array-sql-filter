@@ -1,9 +1,19 @@
 # array-sql-filter
-Add SQL-like query capabilities to JS Object Arrays
+Adds SQL-like query capabilities to JS Object Arrays.
+
+Inclusion of the library adds where(), select() and orderBy() capabilities to object arrays.
+
+1. where() - Accepts SQL query string as parameter. Simulates SQL WHERE clause.
+
+2. select() - Simulates SQL SELECT.
+
+3. orderBy() - Simulates SQL ORDER BY.
+
+
 
 For testing, include [sql-where.js](https://github.com/krishnakumar-m/array-sql-filter/blob/master/src/sql-where.js) in your project
 
-##Example
+###Example
 ```javascript
 var employee = [{
     empid: 100,
