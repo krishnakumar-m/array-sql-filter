@@ -43,9 +43,8 @@ function runQueries() {
 
 
     var stmts=[
-	{ query:"make between (1990 and 2000)",orderByClause:"regDate desc"},
+	{ query:"in(make, 1989,1990,2000)"},
 	{ query:"model like 'C%'"},
-	{query:"make>=1990 and make<=2000"},
 	{query:"maker='Dodge' or make>1990",selectClause:"maker,model",orderByClause:"maker"},
 	{ query:"maker <> 'Ford' and model <>'Camarro'"},
 	{orderByClause:"maker desc",selectClause:"make,model"}
@@ -69,7 +68,7 @@ function runQueries() {
 	}
 	
 	
-if (stmt.orderByClause)
+        if (stmt.orderByClause)
 	{
 	    str += "Order By : <b> " + stmt.orderByClause + "</b><br>";
 	    results = results.orderBy(stmt.orderByClause);

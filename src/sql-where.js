@@ -1,4 +1,4 @@
-Array.prototype.where = function (str) {
+Array.prototype.where = Array.prototype.where || function (str) {
     "use strict";
     var getPreced = function (op) {
         switch (op)
@@ -24,6 +24,9 @@ Array.prototype.where = function (str) {
             case "AND":
             case "OR":
                 return 5;
+            case "NOTIN":
+            case "IN":
+            case "NOTBETWEEN":
             case "BETWEEN": return 4;
             default:
                 return 0;
@@ -75,12 +78,12 @@ Array.prototype.where = function (str) {
         return output;
     };
 
-   var where = function (objArray, expr) {
+    var where = function (objArray, expr) {
 
         var newTokens, output = [],
             tokens = tokenize(expr),
             len = objArray.length,i;
-	    
+
         tokens = buildRPN(tokens);
 
         for (i = 0; i < len; i++)
@@ -98,22 +101,43 @@ Array.prototype.where = function (str) {
     };
 
 
+    var computeInClause= function(oper, arr, flag) {
+	var len = arr.length,i=0,cmprFunc;
+	if (flag && flag === "IN")
+	{
+	    cmprFunc = function(a, b) {
+		return a === b;
+	    };
+	}
+	else
+	{
+	    cmprFunc = function(a, b) {
+		return a !== b;
+	    };
+	}
+	for (;i < len;i++)
+	{
+	    
+	    if (cmprFunc(arr[i].value, oper.value))
+	    {
+		return {type:oper.type,value:true};
+	    }
+	}
 
+	return {type:oper.type,value:false};
+    };
 
     var compute = function (a, op, b, c) {
         var t = a.type;
         var val1, val2 = "",val3= "";
+
         val1 = a.value;
-        if (b)
-	{
-            val2 = b.value;
-        }
+
+	if (b)
+	{ val2 = b.value; }
 
 	if (c)
-	{
-	    val3 = c.value;
-	}
-
+	{ val3 = c.value; }
 
         switch (op.value)
 	{
@@ -189,14 +213,23 @@ Array.prototype.where = function (str) {
                     type: t,
                     value: patt.test(val1)
                 };
-	    case "BETWEEN": return {type:t,
-		    value: val1 >= val2 && val1 <= val3};
+	    case "BETWEEN": 
+		return {
+		    type:t,
+		    value: val1 >= val2 && val1 <= val3
+		};
+            case "NOTBETWEEN":
+		return {
+		    type:t,
+		    value: val1 < val2 || val1 > val3
+		};
+
         }
     };
 
     var evalRPN = function (tokens) {
         var token, stk = [],op0,
-            op1, op2, output;
+            op1, op2, output, opndList=[];
         while (tokens.length > 0)
 	{
 
@@ -213,19 +246,54 @@ Array.prototype.where = function (str) {
 		{
                     stk.push(compute(op2, token));
                 }
-		else if (token.value == "BETWEEN")
-		{
-		    op1 = stk.pop();
-		    op0 = stk.pop();
-
-		    stk.push(compute(op0, token, op1, op2));
-		}
 		else
 		{
                     op1 = stk.pop();
                     stk.push(compute(op1, token, op2));
                 }
             }
+	    else if (token.type == "FUNC")
+	    {
+		if (token.value == "BETWEEN" || 
+		    token.value == "NOTBETWEEN")
+		{
+		    op2 = stk.pop();
+		    if (op2.type == "NUM" && op2.value == 2)
+		    {
+			op2 = stk.pop();
+			op1 = stk.pop();
+		        op0 = stk.pop();
+		        stk.push(compute(op0, token, op1, op2));
+		    }
+		    else
+		    {
+			throw Error("BETWEEN syntax error");
+		    }
+
+		}
+		else if (token.value == "IN" || 
+			 token.value == "NOTIN")
+		{
+		    opndList =[];
+		    op0 = stk.pop();
+
+		    while (op0.value>0)
+		    {
+			op1 = stk.pop();
+			opndList.push(op1);
+			op0.value--;
+		    }
+                    
+		    
+		    if (opndList.length > 1)
+		    {
+			op1 = opndList.pop();
+			//op1 = stk.pop();
+		
+		        stk.push(computeInClause( op1,opndList, token.value));
+		    }
+		}
+	    }
 
 
         }
@@ -244,21 +312,18 @@ Array.prototype.where = function (str) {
     var buildRPN = function (tokens) {
         var rpn = [],
             opstack = [],
-            token,optoken;
+            token,optoken,tokensLen=tokens.length,
+	    opstackLen =0, funcsStack = [],tempFunc ={};
 
-	var isBetween = false, skipNextStartBrace = false;
 
-        while (tokens.length > 0)
+
+        while (tokensLen > 0)
 	{
 
             token = tokens.shift();
-
-	    if (token.value === "AND" &&
-		opstack.length >= 1 && opstack[opstack.length - 1].value == "BETWEEN")
-	    {
-		continue;
-	    }
-
+	    tokensLen--;
+            opstackLen = opstack.length;
+            
 
             if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
 	    {
@@ -267,25 +332,57 @@ Array.prototype.where = function (str) {
             }
 	    else if (token.type == "OP")
 	    {
+		/*
+		*/
+		if (token.value == ",")
+		{
+		    
+		    while(opstack.length>0) {
+			optoken = opstack.pop();
+			if(optoken.value == "(") {
+			    opstack.push(optoken);
+			    break;
+			}
+			rpn.push(optoken);
 
-                if (0 === opstack.length || "(" === opstack[opstack.length - 1].value)
+		    } 
+
+		    if (funcsStack.length > 0)
+		    {
+			funcsStack[funcsStack.length - 1].argCount++;
+		    }
+		    continue;
+		} 
+
+
+                if (0 === opstack.length)
 		{
 
                     opstack.push(token);
 
                 }
 		else
+
 		{
 		    if (token.value == ")")
 		    {
 
-                        do {
+                        while(opstack.length > 0) {
                             optoken = opstack.pop();
+			    if(optoken.value =="(") {
+				break;
+			    }
                             rpn.push(optoken);
 
-                        } while (optoken.value != "(" && opstack.length > 0);
+                        } 
 
-			optoken.value == "(" && rpn.pop();
+			if (funcsStack.length > 0 && opstack.length == funcsStack[funcsStack.length - 1].pos)
+			{
+			    tempFunc = funcsStack.pop();
+			    rpn.push({type:"NUM",value:tempFunc.argCount + 1});
+			    rpn.push({type:"FUNC",value:tempFunc.func});
+
+			}
 
                     }
 		    else if (token.value == "(")
@@ -293,8 +390,6 @@ Array.prototype.where = function (str) {
 
                         opstack.push(token);
 
-			if (opstack.length > 1 && opstack[opstack.length - 2].value == "BETWEEN")
-			{opstack.pop();}
                     }
 		    else
 		    {
@@ -307,29 +402,52 @@ Array.prototype.where = function (str) {
                         opstack.push(token);
                     }
                 }
+
             }
+	    else if (token.type == "FUNC")
+	    {
+		funcsStack.push({func:token.value,
+				    pos:rpn.length,
+				    argCount:0});
+	    }
+
         }
 
         while (opstack.length > 0)
 	{
             rpn.push(opstack.pop());
         }
-
+	
         return rpn;
     };
 
 
     var tokenize = function (str) {
         var tokens = [],
-            token = {}, i = 0;
+            token = {}, i = 0,len,tempString ="",upperString="";
         var OpsList = ["+", "-", "*", "/", "%", "(", ")", ">=", "<=", "<>"];
-        var Keywords = ["AND", "OR", "NOT", "IN", "BETWEEN","LIKE"];
-        str = str.replace("\r\n", " "); //.replace(/\s+/, " ");
+        var Keywords = ["AND", "OR", "NOT","LIKE"];
+	var Funcs = ["IN", "BETWEEN"];
+
+	var checkNotClause = function(word) {
+	    var  len = tokens.length;
+	    if (word === "BETWEEN" || word === "IN")
+	    {
+		if (len > 1 && tokens[len - 2].value === "NOT")
+		{
+		    tokens.pop();
+		    tokens.pop();
+		    tokens.push({
+				    type: "FUNC",
+				    value: "NOT" + word
+				});
+		}
+	    }
+	};
+
+        str = str.replace("\r\n", " ");
         token["type"] = "";
         token["value"] = "";
-        var tempString = "";
-
-
 
         while (i < str.length && str[i])
 	{
@@ -359,13 +477,24 @@ Array.prototype.where = function (str) {
                     i++;
                 } while (str[i] && /[0-9a-zA-Z_]/.test(str[i]));
 
-                if (Keywords.indexOf(tempString.toUpperCase()) > -1)
+		upperString = tempString.toUpperCase();
+
+                if (Keywords.indexOf(upperString) > -1)
 		{
                     tokens.push({
 				    type: "OP",
-				    value: tempString.toUpperCase()
+				    value: upperString
 				});
-                }
+                } 
+		else if (Funcs.indexOf(upperString) > -1)
+		{
+		    tokens.push({
+				    type: "FUNC",
+				    value: upperString
+				});
+
+		    checkNotClause(upperString);
+		}
 		else
 		{
 
@@ -418,6 +547,8 @@ Array.prototype.where = function (str) {
 
         }
 
+	
+
         return tokens;
 
     };
@@ -428,7 +559,7 @@ Array.prototype.where = function (str) {
 
 
 
-Array.prototype.select = function (str) {
+Array.prototype.select = Array.prototype.select || function (str) {
     "use strict";
     var fieldNames = str.trim().split(","),
         nRecords = this.length,
@@ -472,7 +603,7 @@ Array.prototype.select = function (str) {
 };
 
 
-Array.prototype.orderBy = function (str) {
+Array.prototype.orderBy = Array.prototype.orderBy || function (str) {
     "use strict";
     var sortBy = function (objArray, str) {
         var fieldNames = str.trim().split(",");
@@ -500,24 +631,27 @@ Array.prototype.orderBy = function (str) {
 	    }
 
 	    firstRecord = objArray[0];
-	    
+
 	    fieldValue = firstRecord[sortField];
-	    
-	    if(isNaN(Date.parse(fieldValue))) {
-		cmpr = dateCompare;
-	    } else {
-	    
-            switch (typeof (fieldValue))
+
+	    if (isNaN(Date.parse(fieldValue)))
 	    {
-                case "string":
-                    cmpr = strCompare;
-                    break;
-                case "number":
-                    cmpr = numCompare;
-                    break;
-                default:
-                    cmpr = strCompare;
-            }
+		cmpr = dateCompare;
+	    }
+	    else
+	    {
+
+		switch (typeof (fieldValue))
+		{
+		    case "string":
+			cmpr = strCompare;
+			break;
+		    case "number":
+			cmpr = numCompare;
+			break;
+		    default:
+			cmpr = strCompare;
+		}
 	    }
 
             objArray.sort(cmpr(sortField, sortOrder));
@@ -527,13 +661,13 @@ Array.prototype.orderBy = function (str) {
     };
 
 
-    
+
     var dateCompare = function (prop, order) {
 
         return function (a, b) {
             var date1 = new Date(a[prop]);
 	    var date2 = new Date(b[prop]);
-            return (date1 < date2?-1:1) * order;
+            return (date1 < date2 ?-1: 1) * order;
         };
     };
 
