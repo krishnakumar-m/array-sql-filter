@@ -9,7 +9,7 @@ Inclusion of the library adds where(), select() and orderBy() capabilities to ob
 
 3. orderBy() - Simulates SQL ORDER BY.
 
-
+Please note that BETWEEN syntax for now is `exp1 BETWEEN( exp2 , exp3)`
 
 For testing, include [sql-where.js](https://github.com/krishnakumar-m/array-sql-filter/blob/master/src/sql-where.js) in your project
 
