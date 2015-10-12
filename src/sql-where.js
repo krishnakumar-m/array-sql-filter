@@ -294,10 +294,13 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
 		    if (opndList.length > 1)
 		    {
-			op1 = opndList.pop();
-			//op1 = stk.pop();
+			op1 = stk.pop();
 
 		        stk.push(computeInClause(op1, opndList, token.value));
+		    }
+		    else
+		    {
+			throw Error("IN syntax error");
 		    }
 		}
 	    }
@@ -329,6 +332,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
             token = tokens.shift();
 	    tokensLen--;
+	    
             opstackLen = opstack.length;
 
 
@@ -417,11 +421,14 @@ Array.prototype.where = Array.prototype.where || function (str) {
             }
 	    else if (token.type == "FUNC")
 	    {
-		funcsStack.push({func:token.value,
-				    pos:rpn.length,
-				    argCount:0});
+		funcsStack.push(
+		        {
+			 func:token.value,
+		         pos:opstack.length,
+		         argCount:0
+			});
 	    }
-
+	    
         }
 
         while (opstack.length > 0)
