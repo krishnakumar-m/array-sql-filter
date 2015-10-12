@@ -43,7 +43,7 @@ function runQueries() {
 
 
     var stmts=[
-	{ query:"maker in ( 'Ford','Chevrolet')"},
+	{ query:"make between ( 1986,1990) or make between (1995,2000)"},
 	{ query:"model like 'C%'"},
 	{query:"maker='Dodge' or make>1990",selectClause:"maker,model",orderByClause:"maker"},
 	{ query:"maker <> 'Ford' and model <>'Camarro'"},

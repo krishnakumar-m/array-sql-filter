@@ -464,6 +464,9 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	};
 
         str = str.replace("\r\n", " ");
+	
+	str = str.replace(/(BETWEEN\s*\(\s*\S+)(\s+AND\s+)(\S+\s*\))/gi,"$1,$2");
+	
         token["type"] = "";
         token["value"] = "";
 
