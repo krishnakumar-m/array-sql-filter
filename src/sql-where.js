@@ -1,5 +1,9 @@
 Array.prototype.where = Array.prototype.where || function (str) {
     "use strict";
+    /*
+    * Get precedence of operator op
+    *
+    */
     var getPreced = function (op) {
         switch (op)
 	{
@@ -33,8 +37,10 @@ Array.prototype.where = Array.prototype.where || function (str) {
         }
     };
 
-
-
+    /**
+    * Replaces all IDs with corresponding values from the record
+    * objArray
+    */
 
     var replaceIdsWithValues = function (tokens, objArray) {
         var i, l = tokens.length,
@@ -100,31 +106,32 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
     };
 
+    /*
+    * Evaluate IN clause or NOT IN clause
+    *
+    */
 
     var computeInClause= function(oper, arr, flag) {
-	var len = arr.length,i=0,cmprFunc;
+	var len = arr.length,i=0,result = false;
+
 	if (flag && flag === "IN")
 	{
-	    cmprFunc = function(a, b) {
-		return a === b;
-	    };
+	    result = true;
+
 	}
-	else
-	{
-	    cmprFunc = function(a, b) {
-		return a !== b;
-	    };
-	}
+
+
 	for (;i < len;i++)
 	{
-	    
-	    if (cmprFunc(arr[i].value, oper.value))
+
+	    if (arr[i].value === oper.value)
 	    {
-		return {type:oper.type,value:true};
+		return {type:oper.type,value:result};
 	    }
 	}
 
-	return {type:oper.type,value:false};
+	return {type:oper.type,value:!result};
+
     };
 
     var compute = function (a, op, b, c) {
@@ -274,23 +281,23 @@ Array.prototype.where = Array.prototype.where || function (str) {
 		else if (token.value == "IN" || 
 			 token.value == "NOTIN")
 		{
-		    opndList =[];
+		    opndList = [];
 		    op0 = stk.pop();
 
-		    while (op0.value>0)
+		    while (op0.value > 0)
 		    {
 			op1 = stk.pop();
 			opndList.push(op1);
 			op0.value--;
 		    }
-                    
-		    
+
+
 		    if (opndList.length > 1)
 		    {
 			op1 = opndList.pop();
 			//op1 = stk.pop();
-		
-		        stk.push(computeInClause( op1,opndList, token.value));
+
+		        stk.push(computeInClause(op1, opndList, token.value));
 		    }
 		}
 	    }
@@ -323,7 +330,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
             token = tokens.shift();
 	    tokensLen--;
             opstackLen = opstack.length;
-            
+
 
             if (token.type == "STR" || token.type == "NUM" || token.type == "ID")
 	    {
@@ -333,13 +340,15 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	    else if (token.type == "OP")
 	    {
 		/*
-		*/
+		 */
 		if (token.value == ",")
 		{
-		    
-		    while(opstack.length>0) {
+
+		    while (opstack.length > 0)
+		    {
 			optoken = opstack.pop();
-			if(optoken.value == "(") {
+			if (optoken.value == "(")
+			{
 			    opstack.push(optoken);
 			    break;
 			}
@@ -351,11 +360,11 @@ Array.prototype.where = Array.prototype.where || function (str) {
 		    {
 			funcsStack[funcsStack.length - 1].argCount++;
 		    }
-		    continue;
+		    
 		} 
 
 
-                if (0 === opstack.length)
+                else if (0 === opstack.length)
 		{
 
                     opstack.push(token);
@@ -367,9 +376,11 @@ Array.prototype.where = Array.prototype.where || function (str) {
 		    if (token.value == ")")
 		    {
 
-                        while(opstack.length > 0) {
+                        while (opstack.length > 0)
+			{
                             optoken = opstack.pop();
-			    if(optoken.value =="(") {
+			    if (optoken.value == "(")
+			    {
 				break;
 			    }
                             rpn.push(optoken);
@@ -417,7 +428,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	{
             rpn.push(opstack.pop());
         }
-	
+
         return rpn;
     };
 
@@ -547,7 +558,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
         }
 
-	
+
 
         return tokens;
 
