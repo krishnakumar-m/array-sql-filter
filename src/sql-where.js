@@ -133,7 +133,12 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	return {type:oper.type,value:!result};
 
     };
-
+    
+    
+    
+    /*
+    * Perform expression evaluation
+    */
     var compute = function (a, op, b, c) {
         var t = a.type;
         var val1, val2 = "",val3= "";
@@ -465,6 +470,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
         str = str.replace("\r\n", " ");
 	
+	// Convert BETWEEN clause to FUNC expression, by changing AND to comma
 	str = str.replace(/(BETWEEN\s*\(\s*\S+)(\s+AND\s+)(\S+\s*\))/gi,"$1,$2");
 	
         token["type"] = "";
