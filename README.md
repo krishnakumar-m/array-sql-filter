@@ -3,7 +3,7 @@ Adds SQL-like query capabilities to JS Object Arrays.
 
 Inclusion of the library adds where(), select() and orderBy() capabilities to object arrays.
 
-1. where() - Accepts SQL query string as parameter. Simulates SQL WHERE clause.
+1. where() - Accepts SQL query string as parameter. Simulates SQL WHERE clause. Handles all expressions including BETWEEN and IN clauses. Scalars and Aggregate functions are not supported yet.
 
 2. select() - Simulates SQL SELECT.
 
@@ -38,5 +38,5 @@ returns `[{ename:"Rick",empid:101},{ename:"Chuck",empid:100}]`.
 
 
 ###Future 
-Add various SQL functions 
+Add various SQL scalar and aggregate functions 
 
