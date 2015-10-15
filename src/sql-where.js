@@ -22,8 +22,10 @@ Array.prototype.where = Array.prototype.where || function (str) {
             case ">=":
             case "=":
             case "<>":
+	    case "!=":
                 return 7;
             case "NOT":
+	    case "!":
                 return 6;
             case "AND":
             case "OR":
@@ -198,6 +200,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
                     type: t,
                     value: val1 == val2
                 };
+	    case "!=":
             case "<>":
                 return {
                     type: t,
@@ -213,6 +216,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
                     type: t,
                     value: val1 || val2
                 };
+	    case "!":
             case "NOT":
                 return {
                     type: t,
@@ -254,7 +258,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	    else if (token.type == "OP")
 	    {
                 op2 = stk.pop();
-                if (token.value == "NOT")
+                if (token.value == "NOT" || token.value == "!")
 		{
                     stk.push(compute(op2, token));
                 }
@@ -447,7 +451,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
     var tokenize = function (str) {
         var tokens = [],
-            token = {}, i = 0,len,tempString ="",upperString="";
+            i = 0,len,tempString ="",upperString="";
         var OpsList = ["+", "-", "*", "/", "%", "(", ")", ">=", "<=", "<>"];
         var Keywords = ["AND", "OR", "NOT","LIKE"];
 	var Funcs = ["IN", "BETWEEN"];
@@ -468,13 +472,9 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	    }
 	};
 
-        str = str.replace("\r\n", " ");
-	
+        
 	// Convert BETWEEN clause to FUNC expression, by changing AND to comma
 	str = str.replace(/(BETWEEN\s*\(\s*\S+)(\s+AND\s+)(\S+\s*\))/gi,"$1,$2");
-	
-        token["type"] = "";
-        token["value"] = "";
 
         while (i < str.length && str[i])
 	{
@@ -547,14 +547,17 @@ Array.prototype.where = Array.prototype.where || function (str) {
 				value: tempString
 			    });
             }
-	    else if ("+-*/%><=(),".indexOf(str[i]) > -1)
+	    else if ("+-*/%><=(),!".indexOf(str[i]) > -1)
 	    {
 
                 tempString = str[i];
                 i++;
                 if (str[i])
 		{
-                    if ((tempString == "<" && str[i] == "=") || (tempString == ">" && str[i] == "=") || (tempString == "<" && str[i] == ">"))
+                    if ((tempString == "<" && str[i] == "=")
+			|| (tempString == ">" && str[i] == "=")
+			|| (tempString == "<" && str[i] == ">")
+			|| (tempString == "!" && str[i] == "="))
 		    {
                         tempString += str[i];
                         i++;
@@ -571,10 +574,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
                 throw Error("Character unrecognised");
             }
 
-
         }
-
-
 
         return tokens;
 
@@ -611,14 +611,14 @@ Array.prototype.select = Array.prototype.select || function (str) {
 
 	    thisValue = thisRecord[thisField];
 
-	    if (thisValue)
+	    if (typeof(thisValue)==="undefined")
 	    {
 
-		outputRecord[thisField] = thisValue;
+		throw Error("Invalid property " + thisField);
 	    }
 	    else
 	    {
-		throw Error("Invalid property " + thisField);
+		outputRecord[thisField] = thisValue;
 	    }
 
         }

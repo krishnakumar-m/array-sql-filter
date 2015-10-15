@@ -46,7 +46,7 @@ function runQueries() {
 	{ query:"make between ( 1986,1990) or make between (1995,2000)"},
 	{ query:"model like 'C%'"},
 	{query:"maker='Dodge' or make>1990",selectClause:"maker,model",orderByClause:"maker"},
-	{ query:"maker <> 'Ford' and model <>'Camarro'"},
+	{ query:"!(maker = 'Ford' or model ='Camarro')"},
 	{orderByClause:"maker desc",selectClause:"make,model"}
 	];
 
