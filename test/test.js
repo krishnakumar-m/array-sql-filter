@@ -39,6 +39,28 @@ var cars = [
 ];
 
 
+var makeYear =[
+{
+    make:1989,
+    desc :"Pre Release"
+},
+{
+    make:1995,
+    desc :"Post Release"
+},{
+    make:2003,
+    desc :""
+},{
+    make:2001,
+    desc :""
+},
+{
+    make:1998,
+    desc :""
+}
+];
+
+
 function runQueries() {
 
 
@@ -86,4 +108,7 @@ function runQueries() {
 
 	resultDiv.innerHTML += str;
     }
+    
+    
+    resultDiv.innerHTML +="Join Example : "+(JSON.stringify(cars.joinOn("make",makeYear)));
 }

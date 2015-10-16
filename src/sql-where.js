@@ -1,9 +1,9 @@
 Array.prototype.where = Array.prototype.where || function (str) {
     "use strict";
     /*
-    * Get precedence of operator op
-    *
-    */
+     * Get precedence of operator op
+     *
+     */
     var getPreced = function (op) {
         switch (op)
 	{
@@ -40,9 +40,9 @@ Array.prototype.where = Array.prototype.where || function (str) {
     };
 
     /**
-    * Replaces all IDs with corresponding values from the record
-    * objArray
-    */
+     * Replaces all IDs with corresponding values from the record
+     * objArray
+     */
 
     var replaceIdsWithValues = function (tokens, objArray) {
         var i, l = tokens.length,
@@ -109,9 +109,9 @@ Array.prototype.where = Array.prototype.where || function (str) {
     };
 
     /*
-    * Evaluate IN clause or NOT IN clause
-    *
-    */
+     * Evaluate IN clause or NOT IN clause
+     *
+     */
 
     var computeInClause= function(oper, arr, flag) {
 	var len = arr.length,i=0,result = false;
@@ -135,12 +135,12 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	return {type:oper.type,value:!result};
 
     };
-    
-    
-    
+
+
+
     /*
-    * Perform expression evaluation
-    */
+     * Perform expression evaluation
+     */
     var compute = function (a, op, b, c) {
         var t = a.type;
         var val1, val2 = "",val3= "";
@@ -341,7 +341,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 
             token = tokens.shift();
 	    tokensLen--;
-	    
+
             opstackLen = opstack.length;
 
 
@@ -373,7 +373,7 @@ Array.prototype.where = Array.prototype.where || function (str) {
 		    {
 			funcsStack[funcsStack.length - 1].argCount++;
 		    }
-		    
+
 		} 
 
 
@@ -431,13 +431,13 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	    else if (token.type == "FUNC")
 	    {
 		funcsStack.push(
-		        {
-			 func:token.value,
-		         pos:opstack.length,
-		         argCount:0
-			});
+		    {
+			func:token.value,
+			pos:opstack.length,
+			argCount:0
+		    });
 	    }
-	    
+
         }
 
         while (opstack.length > 0)
@@ -472,9 +472,9 @@ Array.prototype.where = Array.prototype.where || function (str) {
 	    }
 	};
 
-        
+
 	// Convert BETWEEN clause to FUNC expression, by changing AND to comma
-	str = str.replace(/(BETWEEN\s*\(\s*\S+)(\s+AND\s+)(\S+\s*\))/gi,"$1,$2");
+	str = str.replace(/(BETWEEN\s*\(\s*\S+)(\s+AND\s+)(\S+\s*\))/gi, "$1,$2");
 
         while (i < str.length && str[i])
 	{
@@ -611,7 +611,7 @@ Array.prototype.select = Array.prototype.select || function (str) {
 
 	    thisValue = thisRecord[thisField];
 
-	    if (typeof(thisValue)==="undefined")
+	    if (typeof(thisValue) === "undefined")
 	    {
 
 		throw Error("Invalid property " + thisField);
@@ -718,4 +718,59 @@ Array.prototype.orderBy = Array.prototype.orderBy || function (str) {
 };
 
 
+Array.prototype.joinOn = Array.prototype.joinOn || function(str,arr) {
+    "use strict";
+    
+    var mergeRecords = function(rec1,rec2) {
+	var outRec = rec1,prop;
+	
+	for(prop in rec2) {
+	    if(rec2.hasOwnProperty(prop)) {
+		if(!rec1[prop]) {
+		    outRec[prop] = rec2[prop];
+		} 
+	    }
+	}
+	
+	
+	return outRec;
+	
+    };
 
+    var join = function(firstArray,secondArray,str) {
+	
+	var outputArray =[],outRow = {};
+	var joinFields = str.replace(/\s*/, "").split("=");
+	var firstField="",secondField="";
+	var t1len =firstArray.length,t2len = secondArray.length,i=0,j=0;
+	var faRecord ={}, saRecord={};
+
+	if (joinFields.length === 1)
+	{
+	    joinFields.push(joinFields[0]);
+	}
+
+	firstField = joinFields[0];
+	secondField = joinFields[1];
+
+	for (i = 0;i < t1len;i++)
+	{
+	    faRecord =firstArray[i];
+	    for (j = 0;j < t2len;j++)
+	    {
+		saRecord = secondArray[j];
+		if (faRecord[firstField] === saRecord[secondField])
+		{
+		    outRow = mergeRecords(faRecord, saRecord);
+		    outputArray.push(outRow);
+
+		}
+	    }
+	}
+	
+	return outputArray;
+    };
+
+    return join(this,arr,str);
+
+};
